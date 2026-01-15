@@ -1,0 +1,14 @@
+@host=http://api-diad.test
+
+### Get total de preinscritos por fecha
+GET {{host}}/api/admission/applicants-preregister-count
+
+### Get total de pagos por fecha
+GET {{host}}/api/admission/payments-count
+
+# Simulacro
+### Get total de inscritos al simulacro
+GET {{host}}/api/simulation/applicants-simulation-count
+
+### Get total de pagos al simulacro
+GET {{host}}/api/simulation/payments-simulation-count

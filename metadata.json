@@ -1,0 +1,5 @@
+{
+  "name": "Dashboard de Inscripciones",
+  "description": "Un panel administrativo para el seguimiento de procesos de admisión y simulacros, con visualización de datos en tiempo real y análisis de brechas de pago.",
+  "requestFramePermissions": []
+}
