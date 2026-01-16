@@ -39,3 +39,13 @@ export interface PartialScholarshipResponse {
   message: string;
   data: PartialScholarshipItem[];
 }
+
+export interface SocialItem {
+  descripcion: string;
+  cantidad: number;
+}
+
+export interface SocialResponse {
+  message: string;
+  data: SocialItem[];
+}

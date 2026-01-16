@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { DailyData, ApiDataItem, DashboardView, PartialScholarshipItem } from '../types';
+import { DailyData, ApiDataItem, DashboardView, PartialScholarshipItem, SocialItem } from '../types';
 import {
   fetchPreregisteredApplicants,
   fetchPaymentsCount,
@@ -8,7 +8,8 @@ import {
   fetchPartialScholarshipCount,
   fetchApplicantsVocationalCepreCount,
   fetchApplicantsVocationalCepreIntensiveCount,
-  fetchSwornDeclarationStatus
+  fetchSwornDeclarationStatus,
+  fetchSocialSocialCount
 } from '../services/api';
 
 /**
@@ -36,6 +37,9 @@ export interface UseDashboardDataReturn {
   vocationalCepreIntensiveTotal: number;
   swornDeclarations: PartialScholarshipItem[];
   swornTotal: number;
+  socialItems: SocialItem[];
+  socialTotal: number;
+  socialLoaded: boolean;
 }
 
 const mergeApiData = (
@@ -89,6 +93,10 @@ export const useDashboardData = (view: DashboardView = DashboardView.ADMISION): 
 
   const [swornDeclarations, setSwornDeclarations] = useState<PartialScholarshipItem[]>([]);
   const [swornTotal, setSwornTotal] = useState<number>(0);
+
+  const [socialItems, setSocialItems] = useState<SocialItem[]>([]);
+  const [socialTotal, setSocialTotal] = useState<number>(0);
+  const [socialLoaded, setSocialLoaded] = useState<boolean>(false);
 
   const fetchData = useCallback(async () => {
     setIsLoading(true);
@@ -164,12 +172,81 @@ export const useDashboardData = (view: DashboardView = DashboardView.ADMISION): 
         // Fetch sworn declaration status
         try {
           const swornResp = await fetchSwornDeclarationStatus();
-          const swornItems = Array.isArray(swornResp?.data) ? swornResp.data : [];
-          setSwornDeclarations(swornItems);
-          setSwornTotal(swornItems.reduce((acc, it) => acc + (it.cantidad || 0), 0));
+          const rawSworn = Array.isArray(swornResp?.data) ? swornResp.data : [];
+          // Mapear explícitamente para asegurar la forma { estado, cantidad }
+          const swornItemsMapped: PartialScholarshipItem[] = rawSworn.map((it: any) => ({
+            estado: it.estado ?? it.descripcion ?? 'N/A',
+            cantidad: typeof it.cantidad === 'number' ? it.cantidad : Number(it.cantidad) || 0
+          }));
+          setSwornDeclarations(swornItemsMapped);
+          setSwornTotal(swornItemsMapped.reduce((acc, it) => acc + (it.cantidad || 0), 0));
         } catch (swErr) {
           setSwornDeclarations([]);
           setSwornTotal(0);
+        }
+
+        // Fetch social/social count
+        try {
+          const socialResp = await fetchSocialSocialCount();
+          // socialResp puede venir en distintas formas:
+          // - { message, data: [ { descripcion, cantidad }, ... ] }
+          // - [ { descripcion, cantidad }, ... ]
+          // - { data: '...json string...' } u otras variaciones.
+          let rawSocial: any[] = [];
+
+          const attemptExtractArray = (maybe: any): any[] | null => {
+            if (Array.isArray(maybe)) return maybe;
+            if (typeof maybe === 'string') {
+              // intentar parsear string que contenga JSON
+              try {
+                const parsed = JSON.parse(maybe);
+                if (Array.isArray(parsed)) return parsed;
+                if (parsed && Array.isArray(parsed.data)) return parsed.data;
+              } catch (_) {
+                // no JSON
+                return null;
+              }
+            }
+            if (maybe && typeof maybe === 'object') {
+              if (Array.isArray(maybe.data)) return maybe.data;
+              if (Array.isArray(maybe.result)) return maybe.result;
+            }
+            return null;
+          };
+
+          // 1) si la respuesta es ya un array
+          if (Array.isArray(socialResp)) {
+            rawSocial = socialResp as any[];
+          } else {
+            // 2) intentar extraer un array de varias propiedades conocidas
+            const candidates = [ (socialResp as any).data, (socialResp as any).result, socialResp ];
+            for (const c of candidates) {
+              const extracted = attemptExtractArray(c);
+              if (Array.isArray(extracted)) {
+                rawSocial = extracted;
+                break;
+              }
+            }
+
+            // 3) como fallback, intentar buscar la primera propiedad que sea array
+            if (rawSocial.length === 0 && socialResp && typeof socialResp === 'object') {
+              const possible = Object.values(socialResp).find(v => Array.isArray(v));
+              if (Array.isArray(possible)) rawSocial = possible as any[];
+            }
+          }
+
+          const socialMapped: SocialItem[] = rawSocial.map((it: any) => ({
+            descripcion: it.descripcion ?? it.label ?? it.name ?? String(it.estado ?? it.origen ?? it.descripcion ?? ''),
+            cantidad: typeof it.cantidad === 'number' ? it.cantidad : Number(it.cantidad) || 0
+          }));
+
+          setSocialItems(socialMapped);
+          setSocialTotal(socialMapped.reduce((acc, it) => acc + (it.cantidad || 0), 0));
+          setSocialLoaded(true);
+        } catch (socErr) {
+          setSocialItems([]);
+          setSocialTotal(0);
+          setSocialLoaded(true);
         }
       } else {
         setPartialScholarships([]);
@@ -178,6 +255,9 @@ export const useDashboardData = (view: DashboardView = DashboardView.ADMISION): 
         setVocationalCepreIntensiveTotal(0);
         setSwornDeclarations([]);
         setSwornTotal(0);
+        setSocialItems([]);
+        setSocialTotal(0);
+        setSocialLoaded(false);
       }
 
       const mergedData = mergeApiData(preregisteredData, paymentsData);
@@ -203,6 +283,9 @@ export const useDashboardData = (view: DashboardView = DashboardView.ADMISION): 
     vocationalCepreTotal,
     vocationalCepreIntensiveTotal,
     swornDeclarations,
-    swornTotal
+    swornTotal,
+    socialItems,
+    socialTotal,
+    socialLoaded
   };
 };

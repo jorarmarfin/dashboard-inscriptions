@@ -1,4 +1,4 @@
-import { ApiResponse, PartialScholarshipResponse } from '../types';
+import { ApiResponse, PartialScholarshipResponse, SocialResponse } from '../types';
 
 const API_BASE_URL = 'http://api-diad.test';
 
@@ -70,7 +70,7 @@ export const fetchApplicantsVocationalCount = async (): Promise<ApiResponse> => 
 };
 
 // New: estado de revisión de Declaración Jurada
-export const fetchSwornDeclarationStatus = async (): Promise<ApiResponse> => {
+export const fetchSwornDeclarationStatus = async (): Promise<PartialScholarshipResponse> => {
   const response = await fetch(`${API_BASE_URL}/api/admission/sworn-declaration`);
   if (!response.ok) {
     throw new Error(`Error fetching sworn declaration status: ${response.status}`);
@@ -78,11 +78,35 @@ export const fetchSwornDeclarationStatus = async (): Promise<ApiResponse> => {
   return response.json();
 };
 
-// New: resumen de redes sociales
-export const fetchSocialSocialCount = async (): Promise<ApiResponse> => {
-  const response = await fetch(`${API_BASE_URL}/api/admission/social-social-count`);
-  if (!response.ok) {
-    throw new Error(`Error fetching social social count: ${response.status}`);
+// New: resumen de redes sociales (tolerante a rutas/formatos)
+export const fetchSocialSocialCount = async (): Promise<SocialResponse | any> => {
+  const candidates = [
+    `${API_BASE_URL}/api/admission/social-shared-count`,
+    `${API_BASE_URL}/api/admission/social-social-count`,
+    `${API_BASE_URL}/api/admission/social-count`,
+    `${API_BASE_URL}/api/admission/socials-count`
+  ];
+
+  const headers = { Accept: 'application/json' };
+
+  for (const url of candidates) {
+    try {
+      const response = await fetch(url, { headers });
+      if (!response.ok) continue;
+      const text = await response.text();
+      // intentar parsear JSON seguro
+      try {
+        const parsed = JSON.parse(text);
+        return parsed;
+      } catch (_) {
+        // no es JSON, intentar devolver objeto con raw text
+        return { message: 'raw', data: text };
+      }
+    } catch (e) {
+      // intentar siguiente URL
+      continue;
+    }
   }
-  return response.json();
+
+  throw new Error('No social endpoints available');
 };

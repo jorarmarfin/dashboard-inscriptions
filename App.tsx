@@ -7,7 +7,9 @@ import {
     Tooltip,
     ResponsiveContainer,
     AreaChart,
-    Area
+    Area,
+    BarChart,
+    Bar
 } from 'recharts';
 import {
     Users,
@@ -55,7 +57,10 @@ const App: React.FC = () => {
         vocationalCepreTotal,
         vocationalCepreIntensiveTotal,
         swornDeclarations,
-        swornTotal
+        swornTotal,
+        socialItems,
+        socialTotal,
+        socialLoaded
     } = useDashboardData(currentView);
 
     // Usar la data del API tanto para ADMISION como para SIMULACRO. Mantener mocks si quieres fallback.
@@ -353,6 +358,47 @@ const App: React.FC = () => {
                             </div>
                         </div>
                     </div>
+                )}
+
+                {/* Gráfica de redes sociales (solo ADMISION) */}
+                {currentView === DashboardView.ADMISION && (
+                  <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="font-semibold text-gray-800">Origen por Redes y Canales</h3>
+                      <span className="text-sm text-gray-400">Total: {socialTotal}</span>
+                    </div>
+
+                    {socialItems.length > 0 ? (
+                      <div className="h-[280px] w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart data={socialItems} layout="vertical" margin={{ top: 10, right: 20, left: 20, bottom: 10 }}>
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                            <XAxis type="number" />
+                            {/* Mostrar todas las etiquetas del eje Y: interval={0} fuerza que no se omita ninguno */}
+                            <YAxis dataKey="descripcion" type="category" width={280} interval={0} tick={{ fontSize: 12, fill: '#475569' }} />
+                            <Tooltip />
+                            <Bar dataKey="cantidad" fill="#2563eb" />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+                    ) : (
+                      <div className="py-10 text-center text-sm text-gray-500">
+                        {socialLoaded ? 'No hay registros de origen disponibles.' : 'Cargando orígenes...'}
+                      </div>
+                    )}
+
+                    {/* Small legend */}
+                    {socialItems.length > 0 && (
+                      <div className="mt-4 flex flex-wrap gap-4 text-xs text-gray-500">
+                        {socialItems.slice(0,6).map((s, i) => (
+                          <div key={i} className="flex items-center space-x-2">
+                            <span className="w-6 h-6 flex items-center justify-center bg-gray-100 rounded text-gray-600">{i+1}</span>
+                            <span>{s.descripcion}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 )}
             </main>
 

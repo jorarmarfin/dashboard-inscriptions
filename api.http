@@ -29,4 +29,4 @@ GET {{host}}/api/admission/applicants-vocational-count
 GET {{host}}/api/admission/sworn-declaration
 
 ### Get REdes sociales
-GET {{host}}/api/admission/social-social-count
+GET {{host}}/api/admission/social-shared-count
