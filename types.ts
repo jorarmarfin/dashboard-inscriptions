@@ -1,4 +1,3 @@
-
 export enum DashboardView {
   ADMISION = 'admision',
   SIMULACRO = 'simulacro'
@@ -30,3 +29,13 @@ export interface ApiResponse {
   data: ApiDataItem[];
 }
 
+// Nuevo tipo para respuesta de semibecas parciales
+export interface PartialScholarshipItem {
+  estado: string;
+  cantidad: number;
+}
+
+export interface PartialScholarshipResponse {
+  message: string;
+  data: PartialScholarshipItem[];
+}

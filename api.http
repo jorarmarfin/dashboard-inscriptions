@@ -15,3 +15,9 @@ GET {{host}}/api/simulation/payments-simulation-count
 
 ### Get Semibecas
 GET {{host}}/api/admission/partial-scholarship-count
+
+### Get postulantes de cepre de vocacional
+GET {{host}}/api/admission/applicants-vocational-cepre-intensive-count
+
+### Get postulantes de cepre de vocacional Intensivo
+GET {{host}}/api/admission/applicants-vocational-cepre-count

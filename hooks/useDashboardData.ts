@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
-import { DailyData, ApiDataItem, DashboardView } from '../types';
+import { DailyData, ApiDataItem, DashboardView, PartialScholarshipItem } from '../types';
 import {
   fetchPreregisteredApplicants,
   fetchPaymentsCount,
   fetchSimulationApplicantsCount,
-  fetchSimulationPaymentsCount
+  fetchSimulationPaymentsCount,
+  fetchPartialScholarshipCount
 } from '../services/api';
 
 interface UseDashboardDataReturn {
@@ -12,6 +13,8 @@ interface UseDashboardDataReturn {
   isLoading: boolean;
   error: string | null;
   refresh: () => void;
+  partialScholarships: PartialScholarshipItem[];
+  partialTotal: number;
 }
 
 const mergeApiData = (
@@ -58,6 +61,9 @@ export const useDashboardData = (view: DashboardView = DashboardView.ADMISION): 
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const [partialScholarships, setPartialScholarships] = useState<PartialScholarshipItem[]>([]);
+  const [partialTotal, setPartialTotal] = useState<number>(0);
+
   const fetchData = useCallback(async () => {
     setIsLoading(true);
     setError(null);
@@ -98,6 +104,23 @@ export const useDashboardData = (view: DashboardView = DashboardView.ADMISION): 
         // silencioso
       }
 
+      // Fetch partial scholarships only for ADMISION
+      if (view === DashboardView.ADMISION) {
+        try {
+          const partialResp = await fetchPartialScholarshipCount();
+          const items = Array.isArray(partialResp?.data) ? partialResp.data : [];
+          setPartialScholarships(items);
+          setPartialTotal(items.reduce((acc, it) => acc + (it.cantidad || 0), 0));
+        } catch (psErr) {
+          // silencioso - no bloquear el resto
+          setPartialScholarships([]);
+          setPartialTotal(0);
+        }
+      } else {
+        setPartialScholarships([]);
+        setPartialTotal(0);
+      }
+
       const mergedData = mergeApiData(preregisteredData, paymentsData);
       setData(mergedData);
     } catch (err) {
@@ -115,6 +138,8 @@ export const useDashboardData = (view: DashboardView = DashboardView.ADMISION): 
     data,
     isLoading,
     error,
-    refresh: fetchData
+    refresh: fetchData,
+    partialScholarships,
+    partialTotal
   };
 };
