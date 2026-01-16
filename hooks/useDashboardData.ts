@@ -25,7 +25,7 @@ import {
  *   hook gestione automáticamente el re-fetch cuando la vista cambie.
  */
 
-interface UseDashboardDataReturn {
+export interface UseDashboardDataReturn {
   data: DailyData[];
   isLoading: boolean;
   error: string | null;

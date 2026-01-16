@@ -45,7 +45,18 @@ const App: React.FC = () => {
     const [isRefreshing, setIsRefreshing] = useState(false);
 
     // Hook para obtener datos de la API (solo para ADMISION)
-    const {data: apiData, isLoading, error, refresh, partialScholarships, partialTotal, vocationalCepreTotal, vocationalCepreIntensiveTotal, swornDeclarations, swornTotal} = useDashboardData(currentView);
+    const {
+        data: apiData,
+        isLoading,
+        error,
+        refresh,
+        partialScholarships,
+        partialTotal,
+        vocationalCepreTotal,
+        vocationalCepreIntensiveTotal,
+        swornDeclarations,
+        swornTotal
+    } = useDashboardData(currentView);
 
     // Usar la data del API tanto para ADMISION como para SIMULACRO. Mantener mocks si quieres fallback.
     const data = useMemo(() => {
