@@ -1,6 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
-import { DailyData, ApiDataItem } from '../types';
-import { fetchPreregisteredApplicants, fetchPaymentsCount } from '../services/api';
+import { DailyData, ApiDataItem, DashboardView } from '../types';
+import {
+  fetchPreregisteredApplicants,
+  fetchPaymentsCount,
+  fetchSimulationApplicantsCount,
+  fetchSimulationPaymentsCount
+} from '../services/api';
 
 interface UseDashboardDataReturn {
   data: DailyData[];
@@ -13,10 +18,11 @@ const mergeApiData = (
   preregistered: ApiDataItem[],
   payments: ApiDataItem[]
 ): DailyData[] => {
-  // Create a map of payments by date
+  // Create a map of payments by date and sum quantities if multiple entries exist
   const paymentsMap = new Map<string, number>();
   payments.forEach(item => {
-    paymentsMap.set(item.fecha, item.cantidad);
+    const prev = paymentsMap.get(item.fecha) || 0;
+    paymentsMap.set(item.fecha, prev + item.cantidad);
   });
 
   // Merge data based on preregistered dates
@@ -24,10 +30,11 @@ const mergeApiData = (
   preregistered.forEach(item => allDates.add(item.fecha));
   payments.forEach(item => allDates.add(item.fecha));
 
-  // Create preregistered map
+  // Create preregistered map and sum quantities per date
   const preregisteredMap = new Map<string, number>();
   preregistered.forEach(item => {
-    preregisteredMap.set(item.fecha, item.cantidad);
+    const prev = preregisteredMap.get(item.fecha) || 0;
+    preregisteredMap.set(item.fecha, prev + item.cantidad);
   });
 
   // Merge and create DailyData array
@@ -46,7 +53,7 @@ const mergeApiData = (
   return mergedData.sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
 };
 
-export const useDashboardData = (): UseDashboardDataReturn => {
+export const useDashboardData = (view: DashboardView = DashboardView.ADMISION): UseDashboardDataReturn => {
   const [data, setData] = useState<DailyData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -60,21 +67,35 @@ export const useDashboardData = (): UseDashboardDataReturn => {
       let paymentsData: ApiDataItem[] = [];
 
       try {
-        const preregisteredResponse = await fetchPreregisteredApplicants();
-        preregisteredData = Array.isArray(preregisteredResponse?.data)
-          ? preregisteredResponse.data
-          : [];
+        if (view === DashboardView.ADMISION) {
+          const preregisteredResponse = await fetchPreregisteredApplicants();
+          preregisteredData = Array.isArray(preregisteredResponse?.data)
+            ? preregisteredResponse.data
+            : [];
+        } else {
+          const preregisteredResponse = await fetchSimulationApplicantsCount();
+          preregisteredData = Array.isArray(preregisteredResponse?.data)
+            ? preregisteredResponse.data
+            : [];
+        }
       } catch (preErr) {
-        // Error silencioso para preregistered
+        // silencioso
       }
 
       try {
-        const paymentsResponse = await fetchPaymentsCount();
-        paymentsData = Array.isArray(paymentsResponse?.data)
-          ? paymentsResponse.data
-          : [];
+        if (view === DashboardView.ADMISION) {
+          const paymentsResponse = await fetchPaymentsCount();
+          paymentsData = Array.isArray(paymentsResponse?.data)
+            ? paymentsResponse.data
+            : [];
+        } else {
+          const paymentsResponse = await fetchSimulationPaymentsCount();
+          paymentsData = Array.isArray(paymentsResponse?.data)
+            ? paymentsResponse.data
+            : [];
+        }
       } catch (payErr) {
-        // Error silencioso para payments
+        // silencioso
       }
 
       const mergedData = mergeApiData(preregisteredData, paymentsData);
@@ -84,7 +105,7 @@ export const useDashboardData = (): UseDashboardDataReturn => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [view]);
 
   useEffect(() => {
     fetchData();
@@ -97,4 +118,3 @@ export const useDashboardData = (): UseDashboardDataReturn => {
     refresh: fetchData
   };
 };
-

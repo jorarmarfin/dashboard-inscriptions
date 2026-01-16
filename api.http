@@ -12,3 +12,6 @@ GET {{host}}/api/simulation/applicants-simulation-count
 
 ### Get total de pagos al simulacro
 GET {{host}}/api/simulation/payments-simulation-count
+
+### Get Semibecas
+GET {{host}}/api/admission/partial-scholarship-count

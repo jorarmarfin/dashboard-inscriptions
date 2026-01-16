@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import {
   Line,
@@ -27,7 +26,8 @@ import { DashboardView, SummaryStats } from './types';
 import { useDashboardData } from './hooks/useDashboardData';
 import {
   MOCK_DATA_SIMULACRO,
-  SUMMARY_SIMULACRO 
+  SUMMARY_SIMULACRO,
+  SUMMARY_ADMISION
 } from './constants.tsx';
 
 const App: React.FC = () => {
@@ -35,16 +35,18 @@ const App: React.FC = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Hook para obtener datos de la API (solo para ADMISION)
-  const { data: apiData, isLoading, error, refresh } = useDashboardData();
+  const { data: apiData, isLoading, error, refresh } = useDashboardData(currentView);
 
+  // Usar la data del API tanto para ADMISION como para SIMULACRO. Mantener mocks si quieres fallback.
   const data = useMemo(() => {
-    return currentView === DashboardView.ADMISION ? apiData : MOCK_DATA_SIMULACRO;
+    return (currentView === DashboardView.ADMISION || currentView === DashboardView.SIMULACRO) ? apiData : MOCK_DATA_SIMULACRO;
   }, [currentView, apiData]);
 
   // Calcular resumen dinámicamente basado en los datos de la API
   const summary = useMemo((): SummaryStats => {
-    if (currentView === DashboardView.SIMULACRO) {
-      return SUMMARY_SIMULACRO;
+    // Si no hay datos del API para esta vista, usar el summary mock como fallback
+    if ((currentView === DashboardView.SIMULACRO || currentView === DashboardView.ADMISION) && apiData.length === 0) {
+      return currentView === DashboardView.SIMULACRO ? SUMMARY_SIMULACRO : SUMMARY_ADMISION;
     }
 
     // Calcular estadísticas desde los datos de la API
@@ -71,9 +73,8 @@ const App: React.FC = () => {
 
   const handleRefresh = () => {
     setIsRefreshing(true);
-    if (currentView === DashboardView.ADMISION) {
-      refresh();
-    }
+    // llamar refresh independientemente de la vista (admision o simulacro)
+    refresh();
     setTimeout(() => setIsRefreshing(false), 800);
   };
 
@@ -112,14 +113,14 @@ const App: React.FC = () => {
           {/* Main Chart Card */}
           <div className="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-gray-100">
             {/* Loading State */}
-            {isLoading && currentView === DashboardView.ADMISION && (
+            {isLoading && (
               <div className="flex items-center justify-center h-[300px]">
                 <Loader2 size={40} className="text-indigo-600 animate-spin" />
               </div>
             )}
 
             {/* Error State */}
-            {error && currentView === DashboardView.ADMISION && !isLoading && (
+            {error && !isLoading && (
               <div className="flex flex-col items-center justify-center h-[300px] text-red-500">
                 <AlertCircle size={40} />
                 <p className="mt-2 text-sm">{error}</p>
@@ -133,7 +134,7 @@ const App: React.FC = () => {
             )}
 
             {/* Chart Content */}
-            {(!isLoading || currentView !== DashboardView.ADMISION) && (!error || currentView !== DashboardView.ADMISION) && (
+            {(!isLoading && !error) && (
             <>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
               <div>
