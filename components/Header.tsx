@@ -1,7 +1,16 @@
-
 import React from 'react';
 import { DashboardView } from '../types';
 
+/**
+ * Header component - controla el cambio de vista
+ *
+ * Documentación:
+ * - Los botones "Admisión" y "Simulacro" llaman a la función `onViewChange`
+ *   pasándole el valor correspondiente del enum `DashboardView`.
+ * - El cambio de vista ocurre en el momento en que el usuario hace click
+ *   en uno de los botones (evento onClick). El componente `App` mantiene
+ *   el estado `currentView` y recibe la notificación a través de `onViewChange`.
+ */
 interface HeaderProps {
   currentView: DashboardView;
   onViewChange: (view: DashboardView) => void;
@@ -17,6 +26,11 @@ const Header: React.FC<HeaderProps> = ({ currentView, onViewChange }) => {
             <span className="text-xl font-bold text-gray-800">Inscripciones</span>
           </div>
           <div className="flex space-x-4">
+            {/*
+              Al hacer click se invoca `onViewChange(DashboardView.ADMISION)`.
+              El manejo del cambio (actualización del estado y re-fetch de datos)
+              lo realiza el componente padre `App`.
+            */}
             <button
               onClick={() => onViewChange(DashboardView.ADMISION)}
               className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
@@ -27,6 +41,9 @@ const Header: React.FC<HeaderProps> = ({ currentView, onViewChange }) => {
             >
               Admisión
             </button>
+            {/*
+              Al hacer click se invoca `onViewChange(DashboardView.SIMULACRO)`.
+            */}
             <button
               onClick={() => onViewChange(DashboardView.SIMULACRO)}
               className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${

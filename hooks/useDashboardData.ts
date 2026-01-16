@@ -5,8 +5,24 @@ import {
   fetchPaymentsCount,
   fetchSimulationApplicantsCount,
   fetchSimulationPaymentsCount,
-  fetchPartialScholarshipCount
+  fetchPartialScholarshipCount,
+  fetchApplicantsVocationalCepreCount,
+  fetchApplicantsVocationalCepreIntensiveCount
 } from '../services/api';
+
+/**
+ * useDashboardData hook
+ *
+ * Documentación importante sobre el cambio de vista:
+ * - El hook acepta un parámetro `view: DashboardView` (por defecto ADMISION).
+ * - Cuando `view` cambia (p. ej. por `setCurrentView` en `App` cuando el usuario
+ *   clickea en el `Header`), el efecto que depende de `view` vuelve a ejecutar
+ *   `fetchData` y el hook reobtiene los datos correspondientes a la nueva vista.
+ * - En ADMISION se consumen los endpoints de admisión (preinscritos, pagos, semibecas).
+ * - En SIMULACRO se consumen los endpoints de simulacro (inscritos y pagos simulacro).
+ * - El `App` pasa `currentView` a `useDashboardData(currentView)` para que el
+ *   hook gestione automáticamente el re-fetch cuando la vista cambie.
+ */
 
 interface UseDashboardDataReturn {
   data: DailyData[];
@@ -15,6 +31,8 @@ interface UseDashboardDataReturn {
   refresh: () => void;
   partialScholarships: PartialScholarshipItem[];
   partialTotal: number;
+  vocationalCepreTotal: number;
+  vocationalCepreIntensiveTotal: number;
 }
 
 const mergeApiData = (
@@ -63,6 +81,8 @@ export const useDashboardData = (view: DashboardView = DashboardView.ADMISION): 
 
   const [partialScholarships, setPartialScholarships] = useState<PartialScholarshipItem[]>([]);
   const [partialTotal, setPartialTotal] = useState<number>(0);
+  const [vocationalCepreTotal, setVocationalCepreTotal] = useState<number>(0);
+  const [vocationalCepreIntensiveTotal, setVocationalCepreIntensiveTotal] = useState<number>(0);
 
   const fetchData = useCallback(async () => {
     setIsLoading(true);
@@ -116,9 +136,30 @@ export const useDashboardData = (view: DashboardView = DashboardView.ADMISION): 
           setPartialScholarships([]);
           setPartialTotal(0);
         }
+
+        // Fetch CEPRE vocational counts (regular and intensive)
+        try {
+          const cepreResp = await fetchApplicantsVocationalCepreCount();
+          const cepreItems = Array.isArray(cepreResp?.data) ? cepreResp.data : [];
+          const cepreTotal = cepreItems.reduce((acc, it) => acc + (it.cantidad || 0), 0);
+          setVocationalCepreTotal(cepreTotal);
+        } catch (cepErr) {
+          setVocationalCepreTotal(0);
+        }
+
+        try {
+          const cepreIntResp = await fetchApplicantsVocationalCepreIntensiveCount();
+          const cepreIntItems = Array.isArray(cepreIntResp?.data) ? cepreIntResp.data : [];
+          const cepreIntTotal = cepreIntItems.reduce((acc, it) => acc + (it.cantidad || 0), 0);
+          setVocationalCepreIntensiveTotal(cepreIntTotal);
+        } catch (cepIntErr) {
+          setVocationalCepreIntensiveTotal(0);
+        }
       } else {
         setPartialScholarships([]);
         setPartialTotal(0);
+        setVocationalCepreTotal(0);
+        setVocationalCepreIntensiveTotal(0);
       }
 
       const mergedData = mergeApiData(preregisteredData, paymentsData);
@@ -140,6 +181,8 @@ export const useDashboardData = (view: DashboardView = DashboardView.ADMISION): 
     error,
     refresh: fetchData,
     partialScholarships,
-    partialTotal
+    partialTotal,
+    vocationalCepreTotal,
+    vocationalCepreIntensiveTotal
   };
 };

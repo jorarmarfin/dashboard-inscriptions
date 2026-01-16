@@ -41,3 +41,39 @@ export const fetchPartialScholarshipCount = async (): Promise<PartialScholarship
   }
   return response.json();
 };
+
+// New: postulantes cepre vocational (intensive)
+export const fetchApplicantsVocationalCepreIntensiveCount = async (): Promise<ApiResponse> => {
+  const response = await fetch(`${API_BASE_URL}/api/admission/applicants-vocational-cepre-intensive-count`);
+  if (!response.ok) {
+    throw new Error(`Error fetching applicants vocational cepre intensive count: ${response.status}`);
+  }
+  return response.json();
+};
+
+// New: postulantes cepre vocational (regular)
+export const fetchApplicantsVocationalCepreCount = async (): Promise<ApiResponse> => {
+  const response = await fetch(`${API_BASE_URL}/api/admission/applicants-vocational-cepre-count`);
+  if (!response.ok) {
+    throw new Error(`Error fetching applicants vocational cepre count: ${response.status}`);
+  }
+  return response.json();
+};
+
+// New: postulantes vocacional (general)
+export const fetchApplicantsVocationalCount = async (): Promise<ApiResponse> => {
+  const response = await fetch(`${API_BASE_URL}/api/admission/applicants-vocational-count`);
+  if (!response.ok) {
+    throw new Error(`Error fetching applicants vocational count: ${response.status}`);
+  }
+  return response.json();
+};
+
+// New: estado de revisión de Declaración Jurada
+export const fetchSwornDeclarationStatus = async (): Promise<ApiResponse> => {
+  const response = await fetch(`${API_BASE_URL}/api/admission/sworn-declaration`);
+  if (!response.ok) {
+    throw new Error(`Error fetching sworn declaration status: ${response.status}`);
+  }
+  return response.json();
+};

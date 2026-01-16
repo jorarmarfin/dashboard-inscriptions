@@ -21,3 +21,9 @@ GET {{host}}/api/admission/applicants-vocational-cepre-intensive-count
 
 ### Get postulantes de cepre de vocacional Intensivo
 GET {{host}}/api/admission/applicants-vocational-cepre-count
+
+### Get postulantes de vocacional
+GET {{host}}/api/admission/applicants-vocational-count
+
+### Get status de revision de Declaracion Jurada
+GET {{host}}/api/admission/sworn-declaration
