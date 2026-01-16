@@ -27,3 +27,6 @@ GET {{host}}/api/admission/applicants-vocational-count
 
 ### Get status de revision de Declaracion Jurada
 GET {{host}}/api/admission/sworn-declaration
+
+### Get REdes sociales
+GET {{host}}/api/admission/social-social-count

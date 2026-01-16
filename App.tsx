@@ -45,7 +45,7 @@ const App: React.FC = () => {
     const [isRefreshing, setIsRefreshing] = useState(false);
 
     // Hook para obtener datos de la API (solo para ADMISION)
-    const {data: apiData, isLoading, error, refresh, partialScholarships, partialTotal, vocationalCepreTotal, vocationalCepreIntensiveTotal} = useDashboardData(currentView);
+    const {data: apiData, isLoading, error, refresh, partialScholarships, partialTotal, vocationalCepreTotal, vocationalCepreIntensiveTotal, swornDeclarations, swornTotal} = useDashboardData(currentView);
 
     // Usar la data del API tanto para ADMISION como para SIMULACRO. Mantener mocks si quieres fallback.
     const data = useMemo(() => {
@@ -291,28 +291,55 @@ const App: React.FC = () => {
 
                 {/* Tabla de Semibecas (desagregado) - solo en vista ADMISION */}
                 {currentView === DashboardView.ADMISION && (
-                    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="font-semibold text-gray-800">Desagregado de Semibecas Parciales</h3>
-                            <span className="text-sm text-gray-400">Total: {partialTotal}</span>
-                        </div>
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left text-sm">
-                                <thead className="bg-gray-50 text-gray-500 text-xs uppercase font-bold">
-                                <tr>
-                                    <th className="py-2 px-3">Estado</th>
-                                    <th className="py-2 px-3 text-right">Cantidad</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                {partialScholarships.map((row, idx) => (
-                                    <tr key={idx} className="border-b border-gray-50">
-                                        <td className="py-3 px-3 text-gray-700">{row.estado}</td>
-                                        <td className="py-3 px-3 text-right font-bold text-gray-800">{row.cantidad}</td>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="font-semibold text-gray-800">Desagregado de Semibecas Parciales</h3>
+                                <span className="text-sm text-gray-400">Total: {partialTotal}</span>
+                            </div>
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left text-sm">
+                                    <thead className="bg-gray-50 text-gray-500 text-xs uppercase font-bold">
+                                    <tr>
+                                        <th className="py-2 px-3">Estado</th>
+                                        <th className="py-2 px-3 text-right">Cantidad</th>
                                     </tr>
-                                ))}
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody>
+                                    {partialScholarships.map((row, idx) => (
+                                        <tr key={idx} className="border-b border-gray-50">
+                                            <td className="py-3 px-3 text-gray-700">{row.estado}</td>
+                                            <td className="py-3 px-3 text-right font-bold text-gray-800">{row.cantidad}</td>
+                                        </tr>
+                                    ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="font-semibold text-gray-800">Desagregado de Declaraciones Juradas</h3>
+                                <span className="text-sm text-gray-400">Total: {swornTotal}</span>
+                            </div>
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left text-sm">
+                                    <thead className="bg-gray-50 text-gray-500 text-xs uppercase font-bold">
+                                    <tr>
+                                        <th className="py-2 px-3">Estado</th>
+                                        <th className="py-2 px-3 text-right">Cantidad</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {swornDeclarations.map((row, idx) => (
+                                        <tr key={idx} className="border-b border-gray-50">
+                                            <td className="py-3 px-3 text-gray-700">{row.estado}</td>
+                                            <td className="py-3 px-3 text-right font-bold text-gray-800">{row.cantidad}</td>
+                                        </tr>
+                                    ))}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 )}

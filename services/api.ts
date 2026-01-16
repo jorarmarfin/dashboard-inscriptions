@@ -77,3 +77,12 @@ export const fetchSwornDeclarationStatus = async (): Promise<ApiResponse> => {
   }
   return response.json();
 };
+
+// New: resumen de redes sociales
+export const fetchSocialSocialCount = async (): Promise<ApiResponse> => {
+  const response = await fetch(`${API_BASE_URL}/api/admission/social-social-count`);
+  if (!response.ok) {
+    throw new Error(`Error fetching social social count: ${response.status}`);
+  }
+  return response.json();
+};

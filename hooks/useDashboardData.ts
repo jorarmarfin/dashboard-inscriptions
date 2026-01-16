@@ -7,7 +7,8 @@ import {
   fetchSimulationPaymentsCount,
   fetchPartialScholarshipCount,
   fetchApplicantsVocationalCepreCount,
-  fetchApplicantsVocationalCepreIntensiveCount
+  fetchApplicantsVocationalCepreIntensiveCount,
+  fetchSwornDeclarationStatus
 } from '../services/api';
 
 /**
@@ -33,6 +34,8 @@ interface UseDashboardDataReturn {
   partialTotal: number;
   vocationalCepreTotal: number;
   vocationalCepreIntensiveTotal: number;
+  swornDeclarations: PartialScholarshipItem[];
+  swornTotal: number;
 }
 
 const mergeApiData = (
@@ -84,6 +87,9 @@ export const useDashboardData = (view: DashboardView = DashboardView.ADMISION): 
   const [vocationalCepreTotal, setVocationalCepreTotal] = useState<number>(0);
   const [vocationalCepreIntensiveTotal, setVocationalCepreIntensiveTotal] = useState<number>(0);
 
+  const [swornDeclarations, setSwornDeclarations] = useState<PartialScholarshipItem[]>([]);
+  const [swornTotal, setSwornTotal] = useState<number>(0);
+
   const fetchData = useCallback(async () => {
     setIsLoading(true);
     setError(null);
@@ -124,7 +130,7 @@ export const useDashboardData = (view: DashboardView = DashboardView.ADMISION): 
         // silencioso
       }
 
-      // Fetch partial scholarships only for ADMISION
+      // Fetch partial scholarships and related ADMISION-only endpoints
       if (view === DashboardView.ADMISION) {
         try {
           const partialResp = await fetchPartialScholarshipCount();
@@ -132,7 +138,6 @@ export const useDashboardData = (view: DashboardView = DashboardView.ADMISION): 
           setPartialScholarships(items);
           setPartialTotal(items.reduce((acc, it) => acc + (it.cantidad || 0), 0));
         } catch (psErr) {
-          // silencioso - no bloquear el resto
           setPartialScholarships([]);
           setPartialTotal(0);
         }
@@ -155,11 +160,24 @@ export const useDashboardData = (view: DashboardView = DashboardView.ADMISION): 
         } catch (cepIntErr) {
           setVocationalCepreIntensiveTotal(0);
         }
+
+        // Fetch sworn declaration status
+        try {
+          const swornResp = await fetchSwornDeclarationStatus();
+          const swornItems = Array.isArray(swornResp?.data) ? swornResp.data : [];
+          setSwornDeclarations(swornItems);
+          setSwornTotal(swornItems.reduce((acc, it) => acc + (it.cantidad || 0), 0));
+        } catch (swErr) {
+          setSwornDeclarations([]);
+          setSwornTotal(0);
+        }
       } else {
         setPartialScholarships([]);
         setPartialTotal(0);
         setVocationalCepreTotal(0);
         setVocationalCepreIntensiveTotal(0);
+        setSwornDeclarations([]);
+        setSwornTotal(0);
       }
 
       const mergedData = mergeApiData(preregisteredData, paymentsData);
@@ -183,6 +201,8 @@ export const useDashboardData = (view: DashboardView = DashboardView.ADMISION): 
     partialScholarships,
     partialTotal,
     vocationalCepreTotal,
-    vocationalCepreIntensiveTotal
+    vocationalCepreIntensiveTotal,
+    swornDeclarations,
+    swornTotal
   };
 };
