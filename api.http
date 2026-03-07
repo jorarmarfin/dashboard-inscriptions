@@ -30,3 +30,10 @@ GET {{host}}/api/admission/sworn-declaration
 
 ### Get REdes sociales
 GET {{host}}/api/admission/social-shared-count
+
+### Get Specialty Count
+GET {{host}}/api/admission/specialty-count
+
+
+### Get Rigth exam Count
+GET {{host}}/api/admission/count-right-to-examination

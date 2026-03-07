@@ -1,4 +1,4 @@
-import { ApiResponse, PartialScholarshipResponse, SocialResponse } from '../types';
+import { ApiResponse, PartialScholarshipResponse, SocialResponse, SpecialtyResponse, SpecialtyItem } from '../types';
 
 const API_BASE_URL = 'http://api-diad.test';
 
@@ -110,3 +110,22 @@ export const fetchSocialSocialCount = async (): Promise<SocialResponse | any> =>
 
   throw new Error('No social endpoints available');
 };
+
+// New: specialty count
+export const fetchSpecialtyCount = async (): Promise<SpecialtyResponse | SpecialtyItem[]> => {
+  const response = await fetch(`${API_BASE_URL}/api/admission/specialty-count`);
+  if (!response.ok) {
+    throw new Error(`Error fetching specialty count: ${response.status}`);
+  }
+  return response.json();
+};
+
+// New: count right to examination
+export const fetchCountRightToExamination = async (): Promise<ApiResponse> => {
+  const response = await fetch(`${API_BASE_URL}/api/admission/count-right-to-examination`);
+  if (!response.ok) {
+    throw new Error(`Error fetching count right to examination: ${response.status}`);
+  }
+  return response.json();
+};
+

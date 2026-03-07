@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { DailyData, ApiDataItem, DashboardView, PartialScholarshipItem, SocialItem } from '../types';
+import { DailyData, ApiDataItem, DashboardView, PartialScholarshipItem, SocialItem, SpecialtyItem } from '../types';
 import {
   fetchPreregisteredApplicants,
   fetchPaymentsCount,
@@ -9,7 +9,9 @@ import {
   fetchApplicantsVocationalCepreCount,
   fetchApplicantsVocationalCepreIntensiveCount,
   fetchSwornDeclarationStatus,
-  fetchSocialSocialCount
+  fetchSocialSocialCount,
+  fetchSpecialtyCount,
+  fetchCountRightToExamination
 } from '../services/api';
 
 /**
@@ -40,6 +42,9 @@ export interface UseDashboardDataReturn {
   socialItems: SocialItem[];
   socialTotal: number;
   socialLoaded: boolean;
+  specialtyItems: SpecialtyItem[];
+  specialtyTotal: number;
+  rightToExaminationTotal: number;
 }
 
 const mergeApiData = (
@@ -97,6 +102,11 @@ export const useDashboardData = (view: DashboardView = DashboardView.ADMISION): 
   const [socialItems, setSocialItems] = useState<SocialItem[]>([]);
   const [socialTotal, setSocialTotal] = useState<number>(0);
   const [socialLoaded, setSocialLoaded] = useState<boolean>(false);
+
+  const [specialtyItems, setSpecialtyItems] = useState<SpecialtyItem[]>([]);
+  const [specialtyTotal, setSpecialtyTotal] = useState<number>(0);
+
+  const [rightToExaminationTotal, setRightToExaminationTotal] = useState<number>(0);
 
   const fetchData = useCallback(async () => {
     setIsLoading(true);
@@ -248,6 +258,35 @@ export const useDashboardData = (view: DashboardView = DashboardView.ADMISION): 
           setSocialTotal(0);
           setSocialLoaded(true);
         }
+
+        // Fetch specialty count
+        try {
+          const specialtyResp = await fetchSpecialtyCount();
+          // La respuesta puede ser directamente un array o { data: [...] }
+          const rawSpecialty = Array.isArray(specialtyResp)
+            ? specialtyResp
+            : (Array.isArray(specialtyResp?.data) ? specialtyResp.data : []);
+          const specialtyMapped: SpecialtyItem[] = rawSpecialty.map((it: any) => ({
+            codigo: it.codigo ?? '',
+            especialidad: it.especialidad ?? '',
+            cantidad: typeof it.cantidad === 'number' ? it.cantidad : Number(it.cantidad) || 0
+          }));
+          setSpecialtyItems(specialtyMapped);
+          setSpecialtyTotal(specialtyMapped.reduce((acc, it) => acc + (it.cantidad || 0), 0));
+        } catch (specErr) {
+          setSpecialtyItems([]);
+          setSpecialtyTotal(0);
+        }
+
+        // Fetch count right to examination
+        try {
+          const rightExamResp = await fetchCountRightToExamination();
+          const rightExamItems = Array.isArray(rightExamResp?.data) ? rightExamResp.data : [];
+          const rightExamTotal = rightExamItems.reduce((acc, it) => acc + (it.cantidad || 0), 0);
+          setRightToExaminationTotal(rightExamTotal);
+        } catch (rightExamErr) {
+          setRightToExaminationTotal(0);
+        }
       } else {
         setPartialScholarships([]);
         setPartialTotal(0);
@@ -258,6 +297,9 @@ export const useDashboardData = (view: DashboardView = DashboardView.ADMISION): 
         setSocialItems([]);
         setSocialTotal(0);
         setSocialLoaded(false);
+        setSpecialtyItems([]);
+        setSpecialtyTotal(0);
+        setRightToExaminationTotal(0);
       }
 
       const mergedData = mergeApiData(preregisteredData, paymentsData);
@@ -286,6 +328,9 @@ export const useDashboardData = (view: DashboardView = DashboardView.ADMISION): 
     swornTotal,
     socialItems,
     socialTotal,
-    socialLoaded
+    socialLoaded,
+    specialtyItems,
+    specialtyTotal,
+    rightToExaminationTotal
   };
 };

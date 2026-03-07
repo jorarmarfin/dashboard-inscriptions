@@ -49,3 +49,15 @@ export interface SocialResponse {
   message: string;
   data: SocialItem[];
 }
+
+export interface SpecialtyItem {
+  codigo: string;
+  especialidad: string;
+  cantidad: number;
+}
+
+export interface SpecialtyResponse {
+  message: string;
+  data: SpecialtyItem[];
+}
+

@@ -60,7 +60,10 @@ const App: React.FC = () => {
         swornTotal,
         socialItems,
         socialTotal,
-        socialLoaded
+        socialLoaded,
+        specialtyItems,
+        specialtyTotal,
+        rightToExaminationTotal
     } = useDashboardData(currentView);
 
     // Usar la data del API tanto para ADMISION como para SIMULACRO. Mantener mocks si quieres fallback.
@@ -279,8 +282,8 @@ const App: React.FC = () => {
                         icon={<CreditCard className="text-green-600" size={18}/>}
                     />
                     <SummaryCard
-                        title="Total de Solicitudes de Semibecas"
-                        value={partialTotal}
+                        title="Total de Postulantes con derecho a examen"
+                        value={rightToExaminationTotal}
                         subtitle="Acumulado total"
                         colorClass="text-blue-600"
                         iconBgClass="bg-blue-50"
@@ -356,6 +359,36 @@ const App: React.FC = () => {
                                     </tbody>
                                 </table>
                             </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Tabla de Especialidades por primera opción (solo ADMISION) */}
+                {currentView === DashboardView.ADMISION && (
+                    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="font-semibold text-gray-800">Especialidad por Primera Opción</h3>
+                            <span className="text-sm text-gray-400">Total: {specialtyTotal}</span>
+                        </div>
+                        <div className="overflow-x-auto max-h-[400px] overflow-y-auto">
+                            <table className="w-full text-left text-sm">
+                                <thead className="bg-gray-50 text-gray-500 text-xs uppercase font-bold sticky top-0">
+                                    <tr>
+                                        <th className="py-2 px-3">Código</th>
+                                        <th className="py-2 px-3">Especialidad</th>
+                                        <th className="py-2 px-3 text-right">Cantidad</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {specialtyItems.map((row, idx) => (
+                                        <tr key={idx} className="border-b border-gray-50 hover:bg-gray-50">
+                                            <td className="py-3 px-3 text-gray-600 font-medium">{row.codigo}</td>
+                                            <td className="py-3 px-3 text-gray-700">{row.especialidad}</td>
+                                            <td className="py-3 px-3 text-right font-bold text-gray-800">{row.cantidad}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 )}
